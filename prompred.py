@@ -3,9 +3,7 @@ import numpy as np
 import math
 import itertools
 import sklearn
-import pydotplus
 import warnings
-import mysql.connector as myconnect
 import pandas as pd
 import sklearn.linear_model
 import matplotlib.pyplot as plt
@@ -29,7 +27,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ### Query MySQL #######################################################################
-
+'''
 def querySQL (database, query):
     config = {
     'user': 'root',
@@ -42,7 +40,7 @@ def querySQL (database, query):
     resultset = pd.read_sql_query(query,cnx)
     
     return resultset
-
+'''
 #######################################################################################
 ### Give scores for subset of parameters ##############################################
 
@@ -214,6 +212,56 @@ def extractATCGpercentage(box):
     return fractionA, fractionT, fractionC, fractionG
 
 ##########################################################################################
+
+def evaluateMutalik(dfDatasetTest, ROI, seqRange, regtype, poly, kernel, treeCount, evalPar = False):
+    
+    
+    dfDatasetTrain = pd.read_csv("data/mut_rand_mod_lib.csv")
+
+    dfDatasetTest['sequence'] = dfDatasetTest['sequence'].str.upper()
+    dfDatasetTest = dfDatasetTest.sort(columns='mean_score',ascending=False)
+
+    labelsTrain, positionBoxTrain, spacerTrain = regionSelect(dfDatasetTrain, ROI, seqRange)
+    labelsTest, positionBoxTest, spacerTest = regionSelect(dfDatasetTest, ROI, seqRange)
+
+    positionMatrixTrain = positionBoxTrain.values
+    positionMatrixTest = positionBoxTest.values
+
+
+    Xdf = positionBoxTrain
+    X = positionMatrixTrain
+    y = [math.sqrt(math.sqrt(u)) for u in labelsTrain]
+
+
+    Xtest = positionMatrixTest
+    ytest = labelsTest
+
+    if parModelTweak is None:
+        
+        
+
+        parModel = {"regType":regType, "poly":poly, "kernel":kernel, "treeCount":treeCount}
+
+        parEval = getParameters(parLabel,parRange)
+        reg = selectRegression(**parModel)
+        GS = GridSearchCV(reg, parEval)
+        GS.fit(X,y)
+        reg = GS.best_estimator_
+        print(GS.best_estimator_)
+
+    else:
+        reg = selectRegression(**parModelTweak)
+
+
+    reg.fit(X,y)
+    rankPredict = reg.predict(Xtest)
+
+    print(np.transpose(np.vstack((dfDatasetTest['sequence'].values,dfDatasetTest['mean_score'].values,rankPredict))))
+    print(stats.spearmanr(dfDatasetTest['mean_score'].values,rankPredict))
+    plt.plot(dfDatasetTest['mean_score'].values,rankPredict, 'ro')
+                    
+                    
+###############################################################################################                    
 ### K-fold regression cross validation ###################################################
 
 def KfoldCV(X,y,k,parModel, parLabel ,parRange):
@@ -225,25 +273,28 @@ def KfoldCV(X,y,k,parModel, parLabel ,parRange):
     OutV=np.empty([0])
     optimalPar = np.zeros([k])
     index=0
+    plt.figure(num=None, figsize=(10, 4), dpi=80, facecolor='w', edgecolor='k')
+    plt.subplot(122)
+    plt.plot([0,6],[0,6], ls="--", c=".3")
     for train_index, test_index in kf.split(X):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
         scoresPar[index,:], optimalPar[index] = evaluateSinglePar(X_train, X_test, y_train, y_test, parModel, parLabel, [parRange])
         score, y_pred = evaluateScore(X_train, X_test, y_train, y_test, {**parModel, parLabel: optimalPar[index]})
-        fig = plt.figure("pred/true: K-fold")
+        plt.title("pred/true: K-fold")
         plt.plot(y_test,y_pred, 'bo')
         plt.xlabel("True label")
         plt.ylabel("Predicted label")
         index+=1
     
     #scores = np.transpose(scoresM)
-    plt.plot([0,6],[0,6], ls="--", c=".3")
-    plt.figure("Cross Validation")
+    plt.subplot(121)
+    plt.title("Cross Validation")  
     plt.imshow(scoresPar, cmap='hot', vmin=0 ,interpolation='nearest')
     plt.colorbar()
-    plt.figure("Cross Validation: Normalized")
-    plt.imshow(sklearn.preprocessing.normalize(scoresPar, axis=1),cmap='hot', vmin=0,interpolation='nearest')
-    plt.colorbar()
+    #plt.figure("Cross Validation: Normalized")
+    #plt.imshow(sklearn.preprocessing.normalize(scoresPar, axis=1),cmap='hot', vmin=0,interpolation='nearest')
+    #plt.colorbar()
 
     return scoresPar, optimalPar
 
@@ -402,17 +453,19 @@ def plotPredictedToReal(yReal,yPred):
 ##########################################################################################
 ### Region selection #####################################################################
 
-def regionSelect(dataset, seqRegions, posRange, test=None):
+def regionSelect(dfDataset, seqRegions, posRange):
     
     
     
 
     # Selecting regions
-    sequences= dataset[:,0]    
-    start35Box = dataset[:,2]
-    start10Box = dataset[:,3]
+    labels = dfDataset['mean_score'].values
+    sequences = dfDataset['sequence'].values 
+    start35Box = dfDataset['35boxstart'].values 
+    start10Box = dfDataset['10boxstart'].values 
     
-    posRange = [-42,1]
+    dataset = dfDataset.values
+    
     difLength = -35-posRange[0]-start35Box
     sequenceAligned = ["-" *difLength[u]+sequences[u] if difLength[u]>=0 else sequences[u][abs(difLength[u]):] for u in range(np.shape(sequences)[0]) ]
     start35Box = np.array([start35Box[u]+difLength[u] for u in range(np.shape(sequences)[0])])
@@ -456,7 +509,7 @@ def regionSelect(dataset, seqRegions, posRange, test=None):
     positionBox = mergePositionDF(dfFinalBox, spacerBox)
 
         
-    return positionBox, spacer
+    return labels, positionBox, spacer
     
 
 ##########################################################################################
