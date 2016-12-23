@@ -1,0 +1,24 @@
+\BOOKMARK [2][-]{subsection.0.1}{Before we start}{}% 1
+\BOOKMARK [1][-]{section.1}{The application of machine learning techniques in promoter engineering of prokaryotic microorganisms}{}% 2
+\BOOKMARK [1][-]{section.2}{Machine Learning}{}% 3
+\BOOKMARK [1][-]{section.3}{Promoter Engineering}{}% 4
+\BOOKMARK [1][-]{section.4}{Data}{}% 5
+\BOOKMARK [2][-]{subsubsection.4.0.1}{Mutalik Database}{section.4}% 6
+\BOOKMARK [1][-]{section.5}{Feature creation and selection}{}% 7
+\BOOKMARK [2][-]{subsection.5.1}{nucleotides with respictive positions}{section.5}% 8
+\BOOKMARK [2][-]{subsection.5.2}{Creation of two reference regions}{section.5}% 9
+\BOOKMARK [2][-]{subsection.5.3}{Creation of dummy variables for every position}{section.5}% 10
+\BOOKMARK [1][-]{section.6}{Data Preprocessing}{}% 11
+\BOOKMARK [2][-]{subsection.6.1}{Sequence annotation}{section.6}% 12
+\BOOKMARK [2][-]{subsection.6.2}{Labels}{section.6}% 13
+\BOOKMARK [1][-]{section.7}{Code Implementation}{}% 14
+\BOOKMARK [1][-]{section.8}{Supported models}{}% 15
+\BOOKMARK [1][-]{section.9}{K-fold cross validation}{}% 16
+\BOOKMARK [1][-]{section.10}{Nested K-fold cross validation}{}% 17
+\BOOKMARK [1][-]{section.11}{Validation}{}% 18
+\BOOKMARK [1][-]{section.12}{Something about rank}{}% 19
+\BOOKMARK [1][-]{section.13}{Anderson promoter library}{}% 20
+\BOOKMARK [1][-]{section.14}{Remarks}{}% 21
+\BOOKMARK [1][-]{section.15}{Future work and focus}{}% 22
+\BOOKMARK [2][-]{subsection.15.1}{Ranked based optimization methods}{section.15}% 23
+\BOOKMARK [2][-]{subsection.15.2}{Neural Networks}{section.15}% 24
